@@ -1,9 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
 apply from: '../config/quality.gradle'
 
-group ='fr.tvbarthel.blurdialogfragment'
-version = '2.2.0'
+group ='com.github.renannery.blurdialogfragment'
+version = '2.1.7'
 
 
 android {

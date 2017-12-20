@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -23,7 +25,10 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
@@ -365,10 +370,13 @@ public class BlurDialogEngine {
         int rightOffset = 0;
         final int navBarSize = getNavigationBarOffset();
 
-        if (mHoldingActivity.getResources().getBoolean(R.bool.blur_dialog_has_bottom_navigation_bar)) {
-            bottomOffset = navBarSize;
-        } else {
-            rightOffset = navBarSize;
+        if (hasNavigationBar(mHoldingActivity)) {
+            Resources resources = mHoldingActivity.getResources();
+            if (resources.getBoolean(R.bool.blur_dialog_has_bottom_navigation_bar)) {
+                bottomOffset = getNavigationBarOffset(mHoldingActivity);
+            } else {
+                rightOffset = getNavigationBarOffset(mHoldingActivity);
+            }
         }
 
         //add offset to the source boundaries since we don't want to blur actionBar pixels
@@ -482,6 +490,40 @@ public class BlurDialogEngine {
             }
         }
         return actionBarHeight;
+    }
+
+    private int getNavigationBarOffset(Activity holdingActivity) {
+        int result = 0;
+        if(hasNavigationBar(holdingActivity)) {
+            //The device has a navigation bar
+            Resources resources = holdingActivity.getResources();
+
+            int orientation = resources.getConfiguration().orientation;
+            int resourceId;
+            if (isTablet(holdingActivity)){
+                resourceId = resources.getIdentifier(orientation == Configuration.ORIENTATION_PORTRAIT ? "navigation_bar_height" : "navigation_bar_height_landscape", "dimen", "android");
+            }  else {
+                resourceId = resources.getIdentifier(orientation == Configuration.ORIENTATION_PORTRAIT ? "navigation_bar_height" : "navigation_bar_width", "dimen", "android");
+            }
+
+            if (resourceId > 0) {
+                return resources.getDimensionPixelSize(resourceId);
+            }
+        }
+        return result;
+    }
+
+    private boolean hasNavigationBar(Activity holdingActivity) {
+        boolean hasMenuKey = ViewConfiguration.get(holdingActivity).hasPermanentMenuKey();
+        boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
+
+        return !hasMenuKey && !hasBackKey;
+    }
+
+    private boolean isTablet(Context c) {
+        return (c.getResources().getConfiguration().screenLayout
+                & Configuration.SCREENLAYOUT_SIZE_MASK)
+                >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
     /**

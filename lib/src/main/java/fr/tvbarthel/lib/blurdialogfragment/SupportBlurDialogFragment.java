@@ -1,5 +1,6 @@
 package fr.tvbarthel.lib.blurdialogfragment;
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -14,7 +15,7 @@ import android.view.WindowManager;
  * <p/>
  * All the screen behind the dialog will be blurred except the action bar.
  */
-public abstract class SupportBlurDialogFragment extends DialogFragment {
+public abstract class SupportBlurDialogFragment extends DialogFragment implements Animator.AnimatorListener {
 
     /**
      * Engine used to blur.
@@ -31,6 +32,10 @@ public abstract class SupportBlurDialogFragment extends DialogFragment {
      */
     private boolean mDimmingEffect;
 
+    protected abstract int blurAnimationDuration();
+    protected abstract void onBlurAnimationStart(Animator animation);
+    protected abstract void onBlurAnimationEnd(Animator animation);
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -43,7 +48,7 @@ public abstract class SupportBlurDialogFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mBlurEngine = new BlurDialogEngine(getActivity());
+        mBlurEngine = new BlurDialogEngine(getActivity(), blurAnimationDuration(), this);
 
         if (mToolbar != null) {
             mBlurEngine.setToolbar(mToolbar);
@@ -218,4 +223,23 @@ public abstract class SupportBlurDialogFragment extends DialogFragment {
         return BlurDialogEngine.DEFAULT_USE_RENDERSCRIPT;
     }
 
+    @Override
+    public void onAnimationStart(Animator animation) {
+        onBlurAnimationStart(animation);
+    }
+
+    @Override
+    public void onAnimationEnd(Animator animation) {
+        onBlurAnimationEnd(animation);
+    }
+
+    @Override
+    public void onAnimationCancel(Animator animation) {
+
+    }
+
+    @Override
+    public void onAnimationRepeat(Animator animation) {
+
+    }
 }

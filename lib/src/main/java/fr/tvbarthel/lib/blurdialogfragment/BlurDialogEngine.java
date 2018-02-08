@@ -145,9 +145,18 @@ public class BlurDialogEngine {
      *
      * @param holdingActivity activity which holds the DialogFragment.
      */
+
+    private Animator.AnimatorListener blurAnimationListener;
+
     public BlurDialogEngine(Activity holdingActivity) {
         mHoldingActivity = holdingActivity;
         mAnimationDuration = holdingActivity.getResources().getInteger(R.integer.blur_dialog_animation_duration);
+    }
+
+    public BlurDialogEngine(Activity holdingActivity, int duration, Animator.AnimatorListener blurAnimationListener) {
+        mHoldingActivity = holdingActivity;
+        mAnimationDuration = duration;
+        this.blurAnimationListener = blurAnimationListener;
     }
 
     /**
@@ -657,11 +666,32 @@ public class BlurDialogEngine {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
                 mBlurredBackgroundView.setAlpha(0f);
                 mBlurredBackgroundView
-                    .animate()
-                    .alpha(1f)
-                    .setDuration(mAnimationDuration)
-                    .setInterpolator(new LinearInterpolator())
-                    .start();
+                        .animate()
+                        .alpha(1f)
+                        .setDuration(mAnimationDuration)
+                        .setInterpolator(new LinearInterpolator())
+                        .setListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+                                blurAnimationListener.onAnimationStart(animation);
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                blurAnimationListener.onAnimationEnd(animation);
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
+
+                            }
+                        })
+                        .start();
             }
             mBackgroundView = null;
             mBackground = null;

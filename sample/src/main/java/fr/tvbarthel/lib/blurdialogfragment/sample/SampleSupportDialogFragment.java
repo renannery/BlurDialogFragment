@@ -1,5 +1,6 @@
 package fr.tvbarthel.lib.blurdialogfragment.sample;
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,6 +10,7 @@ import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import fr.tvbarthel.lib.blurdialogfragment.SupportBlurDialogFragment;
 
@@ -101,6 +103,21 @@ public class SampleSupportDialogFragment extends SupportBlurDialogFragment {
         fragment.setArguments(args);
 
         return fragment;
+    }
+
+    @Override
+    protected int blurAnimationDuration() {
+        return 3000;
+    }
+
+    @Override
+    protected void onBlurAnimationStart(Animator animation) {
+        Toast.makeText(getContext(), "Start", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onBlurAnimationEnd(Animator animation) {
+        Toast.makeText(getContext(), "End", Toast.LENGTH_SHORT).show();
     }
 
     @Override

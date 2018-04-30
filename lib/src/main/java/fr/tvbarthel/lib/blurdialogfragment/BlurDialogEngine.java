@@ -430,7 +430,9 @@ public class BlurDialogEngine {
         final RectF destRect = new RectF(0, 0, overlay.getWidth(), overlay.getHeight());
 
         //draw background from source area in source background to the destination area on the overlay
-        canvas.drawBitmap(bkg, srcRect, destRect, paint);
+        if (!bkg.isRecycled()) {
+            canvas.drawBitmap(bkg, srcRect, destRect, paint);
+        }
 
         //apply fast blur on overlay
         if (mUseRenderScript) {
@@ -598,7 +600,7 @@ public class BlurDialogEngine {
     /**
      * Async task used to process blur out of ui thread
      */
-    private class BlurAsyncTask extends AsyncTask<Void, Void, Void> {
+    private class BlurAsyncTask extends AsyncTask<Boolean, Boolean, Boolean> {
 
         private Bitmap mBackground;
         private View mBackgroundView;
@@ -638,22 +640,30 @@ public class BlurDialogEngine {
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Boolean doInBackground(Boolean... params) {
             //process to the blue
             if (!isCancelled()) {
-                blur(mBackground, mBackgroundView);
+                try {
+                    blur(mBackground, mBackgroundView);
+                } catch (Throwable ex) {
+                    return false;
+                }
             } else {
-                return null;
+                return false;
             }
             //clear memory
             mBackground.recycle();
-            return null;
+            return true;
         }
 
         @Override
         @SuppressLint("NewApi")
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(Boolean success) {
+            super.onPostExecute(success);
+
+            if (success == null || !success) {
+                return;
+            }
 
             mBackgroundView.destroyDrawingCache();
             mBackgroundView.setDrawingCacheEnabled(false);
